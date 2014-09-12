@@ -1,0 +1,31 @@
+{
+  "name": "directiv-data-hyper-repeat",
+  "version": "0.1.0",
+  "description": "repeat over colllections from a hyper-store",
+  "main": "index.js",
+  "scripts": {
+    "test": "NODE_ENV=test ./node_modules/.bin/mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/directiv/data-hyper-repeat.git"
+  },
+  "keywords": [
+    "directiv",
+    "hyper"
+  ],
+  "author": "Cameron Bytheway <bytheway.cameron@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/directiv/data-hyper-repeat/issues"
+  },
+  "homepage": "https://github.com/directiv/data-hyper-repeat",
+  "devDependencies": {
+    "mocha": "^1.21.4",
+    "directiv-test-helpers": "^0.1.0",
+    "directiv-test-hyper-helpers": "^0.1.0"
+  },
+  "dependencies": {
+    "directiv-util-range-parser": "^0.1.0"
+  }
+}
