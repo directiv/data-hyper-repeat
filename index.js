@@ -1,35 +1,75 @@
-/** @directiv data-stateless */
-
 /**
  * Module dependencies
  */
 
 var parser = require('directiv-util-range-parser');
+hyperRepeat.requires = ['store-hyper'];
 
-exports.requires = ['hyper-store'];
+/**
+ * Expose the 'hyper-repeat' directive
+ */
 
-exports.exposes = [
-  'data-hyper-repeat',
-  'data-repeat'
-];
+module.exports = hyperRepeat;
+
+/**
+ * Initialize the 'hyper-repeat' directive
+ *
+ * Examples:
+ *
+ *   user <- users
+ *
+ *   user <- users[0,2..8]
+ *
+ *   user <- [.featured[0..2] .famous[0..2] .others[0..2]]
+ *
+ * @param {StoreHyper}
+ */
+
+function hyperRepeat(store) {
+  this.compile = compile;
+
+  this.state = function(config, state) {
+    var res = store.get(config.path, state);
+    if (!res.completed) return false;
+    return state.set(config.source, res.value);
+  };
+
+  this.children = function(config, state, children) {
+    var items = state.get(config.source);
+    var arr = [];
+    if (!items) return arr;
+
+    var target = config.target;
+    var i, c, child;
+
+    var path = ['state', target];
+
+    for (i = 0; i < items.length; i++) {
+      function update() {return items[i]};
+
+      for (c = 0; c < children.length; c++) {
+        child = children[c];
+        if (!child) continue;
+        // TODO set the key prop
+        child = child.updateIn(path, update);
+        arr.push(child);
+      }
+    }
+    return arr;
+  };
+}
+
+/**
+ * Setup the regex for parsing
+ */
 
 var REGEX = /^ *([^ ]+) +(?:in|\<\-) +([^ \[]+)(\[[^\]]*\])? *$/;
 
 /**
- * In
- *   user in users
- *
- * Arrow
- *   user <- users
- *
- * Range with step
- *   user in users[0,2..8]
- *
- * Merge a stream - TODO
- *   user in [.featured[0..2] .famous[0..2] .others[0..2]]
+ * Compile a 'hyper-repeat' expression
  */
 
-exports.compile = function(input) {
+function compile(input) {
   var res = input.match(REGEX);
   if (!res) throw new Error('Invalid expression: "' + input + '"');
 
@@ -44,7 +84,7 @@ exports.compile = function(input) {
   var source = path.split('.');
 
   // TODO support ranges
-  if (parsedRange) throw new Error('Ranges are not supported at this time');
+  if (parsedRange) console.warn('data-hyper-repeat ranges are not supported at this time');
 
   return {
     target: res[1],
@@ -52,31 +92,4 @@ exports.compile = function(input) {
     source: source[source.length - 1],
     range: parsedRange
   };
-};
-
-exports.state = function(config, state) {
-  var res = this('hyper-store').get(config.path, state.get());
-  if (!res.completed) return false;
-  return state.set(config.source, res.value);
-};
-
-exports.children = function(config, state, children) {
-  var items = state.get(config.source);
-  var arr = [];
-  if (!items) return arr;
-
-  var target = config.target;
-
-  var childState;
-  var i, c, child;
-
-  for (i = 0; i < items.length; i++) {
-    childState = state.set(target, items[i]);
-    for (c = 0; c < children.length; c++) {
-      child = children[c];
-      if (child) arr.push(child.set('state', childState));
-    }
-  }
-
-  return arr;
 };
